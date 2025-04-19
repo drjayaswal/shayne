@@ -1,8 +1,20 @@
 export const code = `
-    anc x = 12
-    flx y = 10
-    flx z = 'dhruv'
-    label(x + y)
-    anc o = 10
-    anc i
-`
+flx a
+a = 1
+a = 2
+a = 3
+anc d = 0
+flx de = 3
+
+
+
+
+
+
+
+
+
+
+
+
+    `

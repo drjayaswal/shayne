@@ -9,5 +9,5 @@ export function compiler(input) {
     const token = lexer(input);
     console.table(token);
     const ast = parser(token);
-    console.dirxml(ast);
+    console.dir(ast);
 }

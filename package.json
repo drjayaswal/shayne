@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "nodemon": "^3.1.9"
+  },
+  "name": "shayne",
+  "version": "1.0.0",
+  "main": "init.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/drjayaswal/shayne.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/drjayaswal/shayne/issues"
+  },
+  "homepage": "https://github.com/drjayaswal/shayne#readme",
+  "description": ""
+}
