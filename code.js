@@ -1,12 +1,12 @@
 export const code = `
-flx a
-a = 1
-a = 2
-a = 3
-anc d = 0
-flx de = 3
+anc PI = 3.145
+flx radius = 5
+evaluate[2*PI*radius**2]
 
+flx threshold = 50
 
+anc Greeting = "Hello, Custom Language!";
+message[Greeting]
 
 
 

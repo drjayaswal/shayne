@@ -20,7 +20,9 @@ const keywords = [
     "resume",    // continue
     "void",      // null
     "404",       // undefined
-    "label",     // print
+    "message",   // print
+    "evaluate",  // exec
+
 ];
 
 export default keywords;

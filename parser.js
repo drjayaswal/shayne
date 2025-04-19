@@ -1,11 +1,6 @@
 import keywords from './Keywords.js';
-import operators from './Operators.js';
-import delimiters from './Delimiters.js';
-import dataTypes from './DataTypes.js';
-import { lexer } from './lexer.js';
-import { code } from './code.js';
 
-function determineType(expression) {
+const determineType = (expression) => {
     const value = expression.trim();
 
     // Boolean check
@@ -46,7 +41,7 @@ function determineType(expression) {
         value: value
     };
 }
-function fetchIdenttifiers(tokens) {
+const fetchIdenttifiers = (tokens) => {
     const identifiers = [];
     for (const token of tokens) {
         if (token.type === "identifier" && !identifiers.includes(token.value)) {
@@ -56,7 +51,7 @@ function fetchIdenttifiers(tokens) {
     return identifiers;
 }
 const identifiers = {};
-export function parser(tokens) {
+export const parser = (tokens) => {
     const ast = {
         type: "Program",
         body: []
@@ -81,8 +76,8 @@ export function parser(tokens) {
 
 
             let declaration = {
-                type: "Declaration",
-                kind: token.value === "anc" ? "anchor" : "flux",
+                type: "Declared",
+                kind: token.value === "anc" ? "Anchor" : "Flux",
                 return: undefined,
                 dType: undefined,
                 name: variableName,
@@ -92,7 +87,7 @@ export function parser(tokens) {
             identifiers[variableName] = token.value;
 
             if (tokens.length > 0 && tokens[0].type === "operator" && tokens[0].value === "=") {
-                declaration.type = "Declaration & Assignment";
+                declaration.type = "Declared & Assigned";
                 tokens.shift();
                 let expression = '';
                 while (tokens.length > 0 && !keywords.includes(tokens[0].value) && tokens[0].type !== "identifier") {
@@ -113,13 +108,13 @@ export function parser(tokens) {
             }
 
             if (identifiers[token.value] === "anc") {
-                const existingDeclaration = ast.body.find(
-                    (node) => (node.type === "Declaration" || node.type === "Declaration & Assignment" && node.value == undefined)
+                const existingDeclared = ast.body.find(
+                    (node) => ((node.type === "Declared & Assigned") && node.value == undefined)
                 );
-                if(existingDeclaration){
-                    existingDeclaration.value = token.value;
+                if(existingDeclared){
+                    existingDeclared.value = token.value;
                 }else{
-                    throw new Error(`Anchor Pulse cannot be reassigned`);
+                    throw new Error(`Anchor Pulse '${token.value}' cannot be reassigned`);
                 }
             }
 
@@ -138,25 +133,25 @@ export function parser(tokens) {
                 const typeInfo = determineType(expression);
 
 
-                const existingDeclaration = ast.body.find(
-                    (node) => (node.type === "Declaration" || node.type === "Declaration & Assignment") && node.name === variableName
+                const existingDeclared = ast.body.find(
+                    (node) => (node.type === "Declared" || node.type === "Declared & Assigned") && node.name === variableName
                 );
 
-                if (existingDeclaration) {
-                    existingDeclaration.type = "Declaration & Assignment"
-                    existingDeclaration.value = typeInfo.value;
-                    existingDeclaration.dType = typeInfo.type;
+                if (existingDeclared) {
+                    existingDeclared.type = "Declared & Assigned"
+                    existingDeclared.value = typeInfo.value;
+                    existingDeclared.dType = typeInfo.type;
                 } else {
                     throw new Error(`Missing Nature of Pulse '${variableName}'`);
                 }
             }
         }
 
-        // label
-        if (token.type === "keyword" && token.value === "label") {
+        // evaluate
+        if (token.type === "keyword" && token.value === "evaluate") {
             let statement = {
-                type: "Labelation",
-                kind: "label",
+                type: "Labeled",
+                kind: "Label",
                 return: undefined,
                 dType: undefined,
                 name: undefined,
@@ -171,16 +166,98 @@ export function parser(tokens) {
                 if (tokens.length > 0 && tokens[0].type === "delimiter" && tokens[0].value === "]") {
                     tokens.shift();
                 } else {
-                    throw new Error("Missing closing bracket ']' for label statement");
+                    throw new Error("Missing closing bracket ']' for evaluate statement");
                 }
             } else {
-                throw new Error("Missing opening bracket '[' for label statement");
+                throw new Error("Missing opening bracket '[' for evaluate statement");
             }
             const typeInfo = determineType(expression);
 
             statement.dType = typeInfo.type;
+            statement.return = expression
+
+            const operands = expression.split(/[\+\-\*\/]/)
+            const operators = expression.match(/[+\-*()]/g)
+            let exp = ''
+            let i = 0
+            let j = 0
+            if(!operators && operands.length == 1){
+                if(operands[i] != Number(operands[i])){
+                    const expressionValue = ast.body.find(
+                        (node) => (node.name === operands[i])
+                    )
+                    if(expressionValue){
+                        exp += expressionValue.value
+                    }else{
+                        throw new Error(`Pulse '${operands[i]}' is undiscoverable`)
+                    }
+                }else{
+                    exp += operands[i++]
+                }
+                try {
+                    const evaluation = eval(exp)
+                    statement.return = evaluation
+                    statement.value = typeInfo.value;
+                    ast.body.push(statement)
+                } catch (error) {
+                    throw new Error(`No expression is found in Evaluate`)
+                }
+            }else{
+                while(i < operands.length || j < operators.length){
+                    if(operands[i] != Number(operands[i])){
+                        const expressionValue = ast.body.find(
+                            (node) => (node.name === operands[i])
+                        )
+                        if(expressionValue){
+                            exp += expressionValue.value
+                            if(j < operators.length) exp += operators[j++]
+                        }
+                        i++
+                    }else{
+                        exp += operands[i++]
+                        if(j < operators.length) exp += operators[j++]
+                    }
+                }
+                while(i<operands.length){
+                    exp+=operands[i++]
+                }
+                statement.return = eval(exp)
+                statement.value = typeInfo.value;
+                ast.body.push(statement)
+            }
+        }
+
+
+        // message
+        if (token.type === "keyword" && token.value === "message") {
+            let statement = {
+                type: "Message",
+                kind: "Message",
+                return: undefined,
+                dType: undefined,
+                name: undefined,
+                value: undefined,
+            };
+            let expression = '';
+            if (tokens.length > 0 && tokens[0].type === "delimiter" && tokens[0].value === "[") {
+                tokens.shift();
+                while (tokens.length > 0 && (tokens[0].type !== "delimiter" || tokens[0].value !== "]")) {
+                    expression += tokens.shift().value;
+                }
+                if (tokens.length > 0 && tokens[0].type === "delimiter" && tokens[0].value === "]") {
+                    tokens.shift();
+                } else {
+                    throw new Error("Missing closing bracket ']' for message statement");
+                }
+            } else {
+                throw new Error("Missing opening bracket '[' for message statement");
+            }
+            const typeInfo = determineType(expression);
+
+            statement.dType = typeInfo.type;
+            statement.return = expression
             statement.value = typeInfo.value;
-            statement.return = 'expression'
+            ast.body.push(statement)
         }
     }
     return ast;

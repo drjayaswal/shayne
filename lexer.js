@@ -2,7 +2,6 @@ import keywords from './Keywords.js';
 import operators from './Operators.js';
 import delimiters from './Delimiters.js';
 import dataTypes from './DataTypes.js';
-import {code} from './code.js';
 
 export function lexer(input) {        
     const token = [];
